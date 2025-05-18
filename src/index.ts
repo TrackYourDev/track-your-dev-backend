@@ -1,6 +1,6 @@
-import app from './app.js';
-import { connectDB } from "./config/db.config.js";
-import { PORT } from "./config/dotenv.config.js";
+import app from './app';
+import { connectDB } from "./config/db.config";
+import { PORT } from "./config/dotenv.config";
 
 connectDB().then(() => {
     app.listen(PORT, () => {

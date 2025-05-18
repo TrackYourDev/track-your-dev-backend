@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { MONGODB_URI,MONGODB_DBNAME } from "./dotenv.config.js";
+import { MONGODB_URI,MONGODB_DBNAME } from "./dotenv.config";
 
 let isConnected = false;
 export const connectDB = async () => {
