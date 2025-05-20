@@ -1,16 +1,14 @@
-import mongoose, { Schema } from "mongoose";
-import { IUser } from "../types/index.types";
+import { Schema, model} from 'mongoose';
+import { IUser } from '../types/index.types';
 
-const UserSchema: Schema = new Schema(
-  {
-    username: { type: String, required: true, unique: true },
-    email: { type: String },
-    avatar_url: { type: String },
-    profile_url: { type: String },
-  },
-  {
-    timestamps: true,
-  }
-);
 
-export const User = mongoose.model<IUser>("User", UserSchema);
+const UserSchema = new Schema<IUser>({
+  githubId: { type: Number, required: true, unique: true },
+  login: { type: String, required: true },
+  name: String,
+  email: String,
+  avatarUrl: String,
+  profileUrl : String
+});
+
+export const User = model<IUser>('User', UserSchema);

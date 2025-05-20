@@ -1,57 +1,70 @@
-import { Document } from 'mongoose';
-export interface ICommit extends Document {
+import { Document,Types } from 'mongoose';
+interface IFileChange {
+  filePath: string;
+  changeType: 'added' | 'removed' | 'modified';
+}
+export interface ICommit {
   sha: string;
   message: string;
-  timestamp: Date;
-  url: string;
-  files: {
-    added: string[];
-    removed: string[];
-    modified: string[];
-  };
-  repository: {
-    id: number;
-    full_name: string;
-    private: boolean;
-    html_url: string;
-  };
   author: {
+    name: string;
+    email: string;
     username: string;
+  };
+  committer: {
     name: string;
     email: string;
+    username: string;
   };
-  pusher: {
-    name: string;
-    email: string;
-  };
-  sender: {
-    login: string;
-    avatar_url: string;
-    profile_url: string;
-  };
-  organization?: {
-    login: string;
-    avatar_url: string;
-    url: string;
-  };
-  summary?: string; // AI-generated summary
+  timestamp: Date;
+  treeId: string;
+  distinct: boolean;
+  fileChanges: IFileChange[];
 }
 
+export interface IPushEvent extends Document {
+  repository: Types.ObjectId; // Reference to Repository
+  pusher: Types.ObjectId; // Reference to User
+  beforeSha: string;
+  afterSha: string;
+  created: boolean;
+  deleted: boolean;
+  forced: boolean;
+  compareUrl: string;
+  commits: ICommit[];
+  pushedAt: Date;
+}
 export interface IUser extends Document {
-  username: string;
+  githubId: number;
+  login: string;
+  name?: string;
   email?: string;
-  avatar_url?: string;
-  profile_url?: string;
+  avatarUrl?: string;
+  profileUrl?: string;
 }
 
 export interface IRepository extends Document {
-  repo_id: number;
-  full_name: string;
+  repoId: number;
+  name: string;
+  fullName: string;
   private: boolean;
-  html_url: string;
-  organization?: {
+  owner: Types.ObjectId; // Reference to User
+  defaultBranch: string;
+  createdAt: Date;
+  updatedAt: Date;
+   organization?: {
+    orgId: number;
     login: string;
-    avatar_url?: string;
+    avatarUrl?: string;
     url?: string;
+    reposUrl?: string;
+    description?: string;
   };
+}
+
+export interface GitHubWebhookHeaders {
+  'x-hub-signature-256'?: string;
+  'x-github-hook-installation-target-id'?: string;
+  'x-github-delivery'?: string;
+  'x-github-event'?: string;
 }

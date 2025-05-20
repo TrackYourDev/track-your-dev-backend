@@ -1,22 +1,24 @@
-import mongoose, { Schema } from 'mongoose';
-import { IRepository } from '../types/index.types';
+import { Schema, model} from 'mongoose';
+import {IRepository} from '../types/index.types';
 
-
-const RepositorySchema: Schema = new Schema(
-  {
-    repo_id: { type: Number, required: true, unique: true },
-    full_name: { type: String, required: true },
-    private: { type: Boolean, default: true },
-    html_url: { type: String, required: true },
-    organization: {
-      login: { type: String },
-      avatar_url: { type: String },
-      url: { type: String },
-    },
-  },
-  {
-    timestamps: true,
+const RepositorySchema = new Schema<IRepository>({
+  repoId: { type: Number, required: true, unique: true },
+  name: { type: String, required: true },
+  fullName: { type: String, required: true },
+  private: { type: Boolean, required: true },
+  owner: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  defaultBranch: { type: String, required: true },
+  createdAt: { type: Date, required: true },
+  updatedAt: { type: Date, required: true },
+  organization: {
+    orgId: { type: Number },
+    login: { type: String },
+    avatarUrl: { type: String },
+    url: { type: String },
+    reposUrl: { type: String },
+    description: { type: String },
   }
-);
+});
 
-export const Repository = mongoose.model<IRepository>('Repository', RepositorySchema);
+
+export const Repository = model<IRepository>('Repository', RepositorySchema);

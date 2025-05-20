@@ -1,10 +1,10 @@
 import express from 'express';
-import {verifyGithubAppWebhook} from '../middlewares/verifyWebhook.middlewares.js';
-import {webhookController} from '../controllers/webhook.controller.js';
+import {verifyGithubAppWebhook} from '../middlewares/verifyWebhook.middlewares';
+import {handleGitHubWebhook} from '../controllers/webhook.controller';
 
 const router = express.Router();
 
-router.post('/webhook',verifyGithubAppWebhook,webhookController);
+router.post('/webhook',verifyGithubAppWebhook,handleGitHubWebhook);
 
 
 export default router;
