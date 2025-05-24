@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
 import { WEBHOOK_SECRET } from "../config/dotenv.config";
 import { GitHubWebhookHeaders } from "../types/index.types";
-import { Responses } from "../utils/responseHendler";
+import { errorResponse } from "../utils/responseHendler";
 export const verifyGithubAppWebhook = (
   req: Request,
   res: Response,
@@ -16,25 +16,19 @@ export const verifyGithubAppWebhook = (
       'x-github-event': event
     } = req.headers as GitHubWebhookHeaders;
     if (!signature)
-       res
-        .status(401)
-        .json(Responses.unauthorized("Missing X-Hub-Signature-256"));
+       return errorResponse(res, "Missing X-Hub-Signature-256", 401);
     if (!installationId)
-       res
-        .status(401)
-        .json(Responses.unauthorized("Missing Installation ID"));
+       return errorResponse(res, "Missing Installation ID", 401);
     if (!deliveryId)
-       res
-        .status(401)
-        .json(Responses.unauthorized("Missing Delivery ID"));
+       return errorResponse(res, "Missing Delivery ID", 401);
     if (!event)
-       res.status(401).json(Responses.unauthorized("Missing Event Type"));
+       return errorResponse(res, "Missing Event Type", 401);
 
     const payload =
       typeof req.body === "string" ? req.body : JSON.stringify(req.body);
 
        if (!payload) {
-       res.status(400).json(Responses.badRequest("Empty payload"));
+       return errorResponse(res, "Empty payload", 400);
     }
      const hmac = crypto.createHmac("sha256", WEBHOOK_SECRET);
     const digest = `sha256=${hmac.update(payload).digest("hex")}`;
@@ -43,7 +37,7 @@ export const verifyGithubAppWebhook = (
       Buffer.from(signature || "", "utf8"), 
       Buffer.from(digest, "utf8"))
     ) {
-       res.status(401).json(Responses.unauthorized("Invalid signature"));
+       return errorResponse(res, "Invalid signature", 401);
     }
     next();
   }  catch (error) {
@@ -52,8 +46,6 @@ export const verifyGithubAppWebhook = (
       headers: req.headers,
       body: req.body
     });
-    res.status(500).json(
-      Responses.serverError("Webhook verification failed", error)
-    );
+    return errorResponse(res, "Webhook verification failed", 500, error);
   }
 };

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { PushEvent } from "../models/pushEvent.model";
 import { User } from "../models/users.model";
 import { Repository } from "../models/repositories.model";
-import { Responses } from "../utils/responseHendler";
+import { successResponse,errorResponse } from "../utils/responseHendler";
 import {ICommit } from "../types/index.types";
 export const handleGitHubWebhook = async (
   req: Request,
@@ -10,6 +10,7 @@ export const handleGitHubWebhook = async (
 ): Promise<void> => {
   try {
     const payload = req.body;
+    console.log("Received GitHub webhook payload:", payload);
     const {
       repository,
       pusher,
@@ -128,11 +129,9 @@ export const handleGitHubWebhook = async (
 
     await PushEvent.insertMany([pushEvent]);
 
-    res.status(201).json(Responses.created(null, "Commits saved successfully"));
+    return successResponse(res, "Commits saved successfully", null, 201);
   } catch (error) {
     console.error("Error saving webhook data:", error);
-    res
-      .status(500)
-      .json(Responses.serverError("Failed to process GitHub webhook", error));
+    return errorResponse(res, "Failed to process GitHub webhook", 500, error);
   }
 };
