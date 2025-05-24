@@ -52,7 +52,7 @@ export const handleGitHubWebhook = async (
       updatedAt: new Date(repository.updated_at),
     };
 
-    await Repository.findOneAndUpdate({ repoId: repository.id }, repoData, {
+    const repoDoc = await Repository.findOneAndUpdate({ repoId: repository.id }, repoData, {
       upsert: true,
       new: true,
       setDefaultsOnInsert: true,
@@ -68,7 +68,7 @@ export const handleGitHubWebhook = async (
       profileUrl: sender.html_url,
     };
 
-    await User.findOneAndUpdate(
+    const userDoc = await User.findOneAndUpdate(
       { githubId: sender.id }, // Match using GitHub user ID (more reliable than login)
       userData,
       { upsert: true, new: true, setDefaultsOnInsert: true }
@@ -77,15 +77,15 @@ export const handleGitHubWebhook = async (
     // 3. Store each Commit
 
     const pushEvent = {
-      repository: repository.full_name,
-      pusher: pusher.name || sender.login,
+      repository: repoDoc._id,
+      pusher: userDoc._id,
       beforeSha: before,
       afterSha: after,
       created: created,
       deleted: deleted,
       forced: forced,
       compareUrl: compare,
-      pushedAt: new Date(pushed_at),
+      pushedAt: pushed_at ? new Date(pushed_at) : new Date(),
       commits: commits.map(
         (commit: any): ICommit => ({
           sha: commit.id,
