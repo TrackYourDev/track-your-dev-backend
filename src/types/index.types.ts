@@ -48,7 +48,7 @@ export interface IRepository extends Document {
   name: string;
   fullName: string;
   private: boolean;
-  owner: Types.ObjectId; // Reference to User
+  owner: string; 
   defaultBranch: string;
   createdAt: Date;
   updatedAt: Date;

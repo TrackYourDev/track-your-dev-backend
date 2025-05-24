@@ -6,7 +6,7 @@ const RepositorySchema = new Schema<IRepository>({
   name: { type: String, required: true },
   fullName: { type: String, required: true },
   private: { type: Boolean, required: true },
-  owner: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  owner: { type: String,required: true },
   defaultBranch: { type: String, required: true },
   createdAt: { type: Date, required: true },
   updatedAt: { type: Date, required: true },
