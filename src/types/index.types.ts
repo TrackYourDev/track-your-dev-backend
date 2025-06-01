@@ -85,6 +85,123 @@ interface IGitHubCommit {
   modified: string[];
 }
 
+export interface IGitHubComparison {
+  url: string;
+  html_url: string;
+  permalink_url: string;
+  diff_url: string;
+  patch_url: string;
+  base_commit: {
+    sha: string;
+    node_id: string;
+    commit: {
+      author: IGitHubUser;
+      committer: IGitHubUser;
+      message: string;
+      tree: {
+        sha: string;
+        url: string;
+      };
+      url: string;
+      comment_count: number;
+      verification: {
+        verified: boolean;
+        reason: string;
+        signature: string | null;
+        payload: string | null;
+      };
+    };
+    url: string;
+    html_url: string;
+    comments_url: string;
+    author: IGitHubUser;
+    committer: IGitHubUser;
+    parents: Array<{
+      sha: string;
+      url: string;
+      html_url: string;
+    }>;
+  };
+  merge_base_commit: {
+    sha: string;
+    node_id: string;
+    commit: {
+      author: IGitHubUser;
+      committer: IGitHubUser;
+      message: string;
+      tree: {
+        sha: string;
+        url: string;
+      };
+      url: string;
+      comment_count: number;
+      verification: {
+        verified: boolean;
+        reason: string;
+        signature: string | null;
+        payload: string | null;
+      };
+    };
+    url: string;
+    html_url: string;
+    comments_url: string;
+    author: IGitHubUser;
+    committer: IGitHubUser;
+    parents: Array<{
+      sha: string;
+      url: string;
+      html_url: string;
+    }>;
+  };
+  status: 'ahead' | 'behind' | 'identical';
+  ahead_by: number;
+  behind_by: number;
+  total_commits: number;
+  commits: Array<{
+    sha: string;
+    node_id: string;
+    commit: {
+      author: IGitHubUser;
+      committer: IGitHubUser;
+      message: string;
+      tree: {
+        sha: string;
+        url: string;
+      };
+      url: string;
+      comment_count: number;
+      verification: {
+        verified: boolean;
+        reason: string;
+        signature: string | null;
+        payload: string | null;
+      };
+    };
+    url: string;
+    html_url: string;
+    comments_url: string;
+    author: IGitHubUser;
+    committer: IGitHubUser;
+    parents: Array<{
+      sha: string;
+      url: string;
+      html_url: string;
+    }>;
+  }>;
+  files: Array<{
+    sha: string;
+    filename: string;
+    status: 'added' | 'removed' | 'modified' | 'renamed';
+    additions: number;
+    deletions: number;
+    changes: number;
+    blob_url: string;
+    raw_url: string;
+    contents_url: string;
+    patch?: string;
+  }>;
+}
+
 export interface GitHubWebhookPayload {
   ref: string;
   before: string;

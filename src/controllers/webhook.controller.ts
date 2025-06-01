@@ -3,7 +3,7 @@ import { PushEvent } from "../models/pushEvent.model";
 import { User } from "../models/users.model";
 import { Repository } from "../models/repositories.model";
 import { successResponse,errorResponse } from "../utils/responseHendler";
-import {ICommit, GitHubWebhookPayload } from "../types/index.types";
+import {ICommit, GitHubWebhookPayload, IGitHubComparison} from "../types/index.types";
 import jwtToken from "../utils/generateJWT";
 
 export const handleGitHubWebhook = async (
@@ -38,7 +38,7 @@ export const handleGitHubWebhook = async (
       }
     });
     
-    const comparisonData = await res.json();
+    const comparisonData = await res.json() as IGitHubComparison;
     console.log(comparisonData);
     // console.log(comparisonData.files.map((file: {
     //   filename: string;
