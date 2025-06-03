@@ -3,53 +3,14 @@ import { PushEvent } from "../models/pushEvent.model";
 import { User } from "../models/users.model";
 import { Repository } from "../models/repositories.model";
 import { successResponse,errorResponse } from "../utils/responseHendler";
-import {ICommit, GitHubWebhookPayload, IGitHubComparison} from "../types/index.types";
-import jwtToken from "../utils/generateJWT";
-
+import {ICommit } from "../types/index.types";
 export const handleGitHubWebhook = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const payload = req.body as GitHubWebhookPayload;
-    console.log("Received GitHub webhook payload:", JSON.stringify(payload, null, 2));
-
-    const installationId = payload.installation.id;
-
-    const response = await fetch(`https://api.github.com/app/installations/${installationId}/access_tokens`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-        Accept: 'application/vnd.github+json'
-      }
-    });
-
-    const data = await response.json() as { token: string };
-    const installationAccessToken = data.token;
-    console.log("Installation access token:", installationAccessToken);
-
-    const beforeCommitHash = payload.before;
-    const afterCommitHash = payload.after;
-
-    const res = await fetch(`https://api.github.com/repos/${payload.organization.login}/${payload.repository.name}/compare/${beforeCommitHash}...${afterCommitHash}`, {
-      headers: {
-        Authorization: `token ${installationAccessToken}`,
-        Accept: 'application/vnd.github+json'
-      }
-    });
-    
-    const comparisonData = await res.json() as IGitHubComparison;
-    console.log(comparisonData);
-    // console.log(comparisonData.files.map((file: {
-    //   filename: string;
-    //   additions: number;
-    //   deletions: number;
-    // }) => ({
-    //   file: file.filename,
-    //   additions: file.additions,
-    //   deletions: file.deletions
-    // })));
-
+    const payload = req.body;
+    console.log("Received GitHub webhook payload:", payload);
     const {
       repository,
       pusher,
