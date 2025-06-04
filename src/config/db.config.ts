@@ -24,7 +24,7 @@ export const connectDB = async () => {
         connectDB();
     });
     mongoose.connection.on("reconnected", () => {
-        console.log("�� MongoDB reconnected!");
+        console.log("😅 MongoDB reconnected!");
     });
 }
 

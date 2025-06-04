@@ -31,14 +31,14 @@ export const handleGitHubWebhook = async (
     const beforeCommitHash = payload.before;
     const afterCommitHash = payload.after;
 
-    const res = await fetch(`https://api.github.com/repos/${payload.organization.login}/${payload.repository.name}/compare/${beforeCommitHash}...${afterCommitHash}`, {
+    const resposeApiGithub = await fetch(`https://api.github.com/repos/${payload.organization.login}/${payload.repository.name}/compare/${beforeCommitHash}...${afterCommitHash}`, {
       headers: {
         Authorization: `token ${installationAccessToken}`,
         Accept: 'application/vnd.github+json'
       }
     });
     
-    const comparisonData = await res.json() as IGitHubComparison;
+    const comparisonData = await resposeApiGithub.json() as IGitHubComparison;
     console.log(comparisonData);
     // console.log(comparisonData.files.map((file: {
     //   filename: string;
