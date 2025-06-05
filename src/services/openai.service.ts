@@ -114,11 +114,9 @@ export async function generateTasks(summaries: string): Promise<{
             messages: [
                 {
                     role: "system",
-                    content: `You are a task analyzer. Your job is to analyze commit summaries and generate two types of tasks: technical and non-technical.
+                    content: `here are the summaries from a mini-llm for a commit from developer
+infer the summaries and present list of tasks accomplished by developer in both technical and non-technical way
 
-For each commit summary, identify:
-1. Technical tasks: Code-related changes, implementations, fixes, etc.
-2. Non-technical tasks: Documentation, communication, planning, etc.
 
 Return a JSON object in this EXACT format:
 {
