@@ -1,39 +1,16 @@
 import { Schema, model } from "mongoose";
-import { ICommit, IPushEvent } from "../types/index.types";
-
-const CommitSchema = new Schema<ICommit>({
-  sha: { type: String, required: true },
-  message: { type: String, required: true },
-  author: {
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    username: { type: String, required: true },
-  },
-  committer: {
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    username: { type: String, required: true },
-  },
-  timestamp: { type: Date, required: true },
-  treeId: { type: String, required: true },
-  distinct: { type: Boolean, required: true },
-  fileChanges: [
-    {
-      filePath: { type: String, required: true },
-      changeType: {
-        type: String,
-        enum: ["added", "removed", "modified"],
-        required: true,
-      },
-    },
-  ],
-});
+import { IPushEvent } from "../types/index.types";
 
 const PushEventSchema = new Schema<IPushEvent>(
   {
     repository: {
       type: Schema.Types.ObjectId,
       ref: "Repository",
+      required: true,
+    },
+    organization: {
+      type: Schema.Types.ObjectId,
+      ref: "Organization",
       required: true,
     },
     pusher: { type: Schema.Types.ObjectId, ref: "User", required: true },
@@ -43,7 +20,7 @@ const PushEventSchema = new Schema<IPushEvent>(
     deleted: { type: Boolean, required: true },
     forced: { type: Boolean, required: true },
     compareUrl: { type: String, required: true },
-    commits: [CommitSchema],
+    commits: [{ type: Schema.Types.ObjectId, ref: "Commit" }],
     pushedAt: { type: Date, required: true },
   },
   { timestamps: true }
