@@ -6,14 +6,13 @@ import { Commit } from "../models/commits.model";
 import { Organization } from "../models/organisations.model";
 import { successResponse, errorResponse } from "../utils/responseHendler";
 import { GitHubWebhookPayload } from "../types/index.types";
-import { GitHubService } from "../services/github.service";
-import { OpenAIService } from "../services/openai.service";
-import { Types } from "mongoose";
+import { compareCommits } from "../services/github.service";
+import { analyzeGitHubDiff, generateTasks } from "../services/openai.service";
 
-export const handleGitHubWebhook = async (
+export async function handleGitHubWebhook(
   req: Request,
   res: Response
-): Promise<void> => {
+): Promise<void> {
   try {
     const payload = req.body as GitHubWebhookPayload;
     console.log("Received GitHub webhook payload:", JSON.stringify(payload, null, 2));
@@ -22,7 +21,7 @@ export const handleGitHubWebhook = async (
     const beforeCommitHash = payload.before;
     const afterCommitHash = payload.after;
 
-    const comparisonData = await GitHubService.compareCommits(
+    const comparisonData = await compareCommits(
       payload.organization.login,
       payload.repository.name,
       beforeCommitHash,
@@ -39,7 +38,7 @@ export const handleGitHubWebhook = async (
         status: ${file.status} 
         ${file.patch}
         `;
-        const analysis = await OpenAIService.analyzeGitHubDiff(diff);
+        const analysis = await analyzeGitHubDiff(diff);
         return {
           filename: file.filename,
           ...analysis
@@ -48,7 +47,7 @@ export const handleGitHubWebhook = async (
     );
     console.log(fileAnalyses);
 
-    const tasks = await OpenAIService.generateTasks(fileAnalyses.map((file) => file.summary).join("\n"));
+    const tasks = await generateTasks(fileAnalyses.map((file) => file.summary).join("\n"));
     console.log(tasks);
 
     const {
@@ -181,4 +180,4 @@ export const handleGitHubWebhook = async (
     console.error("Error saving webhook data:", error);
     return errorResponse(res, "Failed to process GitHub webhook", 500, error);
   }
-};
+}
