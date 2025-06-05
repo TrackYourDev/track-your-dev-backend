@@ -13,14 +13,16 @@ if (!privateKey) {
   privateKey = fs.readFileSync('./private-key.pem', 'utf8'); // fallback for local dev
 }
 
-const jwtToken = jwt.sign(
-  {
-    iss: appId,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 10 * 60,
-  },
-  privateKey,
-  { algorithm: 'RS256' }
-);
+const generateJwtToken = () => {
+  return jwt.sign(
+    {
+      iss: appId,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 10 * 60,
+    },
+    privateKey,
+    { algorithm: 'RS256' }
+  )
+}
 
-export default jwtToken;
+export default generateJwtToken;

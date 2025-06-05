@@ -1,11 +1,11 @@
 import { IGitHubComparison } from "../types/index.types";
-import jwtToken from "../utils/generateJWT";
+import generateJwtToken from "../utils/generateJWT";
 
 async function getInstallationAccessToken(installationId: number): Promise<string> {
   const response = await fetch(`https://api.github.com/app/installations/${installationId}/access_tokens`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${jwtToken}`,
+      Authorization: `Bearer ${generateJwtToken()}`,
       Accept: 'application/vnd.github+json'
     }
   });
