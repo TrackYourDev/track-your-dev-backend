@@ -6,7 +6,7 @@ interface AuthRequest extends Request {
 }
 
 export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
-  const token = req.cookies.get('github_token')?.value;
+  const token = req.cookies['github_token'];
   if (!token) {
     res.status(401).json({ message: "No token provided" });
     return;
@@ -20,10 +20,8 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
         'User-Agent': 'trackyourdev'
       }
     });
-
     if (response.ok) {
       const userData = await response.json();
-      console.log(userData);
       req.githubId = userData.id;
       next();
     } else {
