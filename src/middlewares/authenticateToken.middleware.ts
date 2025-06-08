@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+
 
 interface AuthRequest extends Request {
   githubId?: string;
@@ -20,7 +20,6 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
         'User-Agent': 'trackyourdev'
       }
     });
-
 
     if (response.ok) {
       const userData = await response.json();

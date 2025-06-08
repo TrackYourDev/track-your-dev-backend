@@ -239,7 +239,7 @@ export interface IUser extends Document {
 
 export interface IOrganization {
   orgId: number;
-  login: string;
+  name: string;
   avatarUrl: string;
   url: string;
   reposUrl: string;

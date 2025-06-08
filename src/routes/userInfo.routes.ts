@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { getUserCommits } from "../controllers/userInfo.controller";
-import { authenticateToken } from "../middlewares/userInfo.middleware";
+import { getUserInfoController } from "../controllers/userInfo.controller";
+import { authenticateToken } from "../middlewares/authenticateToken.middleware";
 
 const router = Router();
 
-router.get("/user/commits", authenticateToken, getUserCommits);
+router.get("/userinfo", authenticateToken, getUserInfoController);
 
 export default router;
