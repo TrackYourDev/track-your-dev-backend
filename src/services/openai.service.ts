@@ -136,9 +136,7 @@ Return a JSON object in this EXACT format:
 
 IMPORTANT:
 - Return ONLY the JSON object, no markdown formatting
-- Do not include any backticks or code block markers
-- Include at least one task in each category if possible
-- If no tasks are found in a category, return an empty array`
+- Do not include any backticks or code block markers`
                 },
                 {
                     role: "user",

@@ -60,8 +60,8 @@ export const sendWaitlistEmail = async (to: string) => {
 
               <div style="margin-top: 20px;">
                 <a href="https://x.com/TrackYourDev" style="color: #00FFF7; text-decoration: none; margin: 0 10px;">X</a> |
-                <a href="https://discord.gg/TFHsRShQ" style="color: #00FFF7; text-decoration: none; margin: 0 10px;">Discord</a> |
-                <a href="https://trackyourdev.vercel.app/" style="color: #00FFF7; text-decoration: none; margin: 0 10px;">Website</a>
+                <a href="https://discord.gg/rtGrJ2n2Gz" style="color: #00FFF7; text-decoration: none; margin: 0 10px;">Discord</a> |
+                <a href="https://trackyour.dev" style="color: #00FFF7; text-decoration: none; margin: 0 10px;">Website</a>
               </div>
 
               <p style="font-size: 12px; color: #555; margin-top: 40px;">© 2025 TrackYourDev. All rights reserved.</p>
