@@ -84,7 +84,7 @@ export async function handleGitHubWebhook(
     // 2. Upsert Organization
     const orgData = {
       orgId: organization.id,
-      login: organization.login,
+      name: organization.login,
       avatarUrl: organization.avatar_url,
       url: organization.url,
       reposUrl: organization.repos_url,
