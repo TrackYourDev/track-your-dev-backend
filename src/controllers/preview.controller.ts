@@ -8,10 +8,12 @@ import { successResponse, errorResponse } from "../utils/responseHendler";
 import { Organization } from "../models/organisations.model";
 import { Repository } from "../models/repositories.model";
 import { User } from "../models/users.model";
+import { IRepository } from "../types/index.types";
 
-export const previewAllData = async (req: Request, res: Response) => {
+export const syncAndGetData = async (req: Request, res: Response) => {
   try {
-    console.time('previewAllData');
+    console.time('syncAndGetData');
+    const githubId = (req as any).githubId;
     
     // Get all installations in parallel
     const installations = await getInstallations();
@@ -24,36 +26,24 @@ export const previewAllData = async (req: Request, res: Response) => {
           const { id: installationId, account } = installation;
           const orgLogin = account.login;
 
-          // Get token and repos in parallel
+          // Get token and check existing data in parallel
           const [token, existingOrg] = await Promise.all([
             getInstallationAccessToken(installationId),
             Organization.findOne({ orgId: account.id }).lean()
           ]);
 
-          // If org exists and has repos, skip fetching from GitHub
+          // If org exists, get its repos
+          let existingRepos: IRepository[] = [];
           if (existingOrg) {
-            const existingRepos = await Repository.find({ organization: existingOrg._id }).lean();
-            if (existingRepos.length > 0) {
-              console.log(`Found existing data for ${orgLogin}, skipping GitHub fetch`);
-              return {
-                organization: {
-                  login: orgLogin,
-                  installationId,
-                },
-                repositories: existingRepos.map(repo => ({
-                  name: repo.name,
-                  id: repo.repoId
-                })),
-                source: 'database'
-              };
-            }
+            existingRepos = await Repository.find({ organization: existingOrg._id }).lean();
+            console.log(`Found ${existingRepos.length} existing repos for ${orgLogin}`);
           }
 
-          // Fetch repos from GitHub
-          const repos = await getRepositories(token);
-          console.log(`Fetched ${repos.length} repos for ${orgLogin}`);
+          // Always fetch from GitHub to check for new repos
+          const githubRepos = await getRepositories(token);
+          console.log(`Fetched ${githubRepos.length} repos from GitHub for ${orgLogin}`);
 
-          // Store organization
+          // Store/update organization
           const orgData = {
             orgId: account.id,
             installationId: installationId,
@@ -70,8 +60,12 @@ export const previewAllData = async (req: Request, res: Response) => {
             { upsert: true, new: true, setDefaultsOnInsert: true }
           );
 
-          // Process all repositories in parallel
-          const repoPromises = repos.map(async (repo) => {
+          // Find new repos that aren't in our database
+          const existingRepoIds = new Set(existingRepos.map(repo => repo.repoId));
+          const newRepos = githubRepos.filter(repo => !existingRepoIds.has(repo.id));
+
+          // Process new repos in parallel
+          const repoPromises = newRepos.map(async (repo) => {
             const repoData = {
               repoId: repo.id,
               name: repo.name,
@@ -90,18 +84,35 @@ export const previewAllData = async (req: Request, res: Response) => {
             );
           });
 
-          const savedRepos = await Promise.all(repoPromises);
+          const savedNewRepos = await Promise.all(repoPromises);
+          console.log(`Added ${savedNewRepos.length} new repos for ${orgLogin}`);
+
+          // Combine existing and new repos
+          const allRepos = [...existingRepos, ...savedNewRepos];
 
           return {
             organization: {
               login: orgLogin,
               installationId,
+              id: orgDoc._id,
+              name: orgLogin,
+              avatarUrl: account.avatar_url,
+              url: account.url,
             },
-            repositories: savedRepos.map(repo => ({
+            repositories: allRepos.map(repo => ({
+              id: repo.repoId,
               name: repo.name,
-              id: repo.repoId
+              fullName: repo.fullName,
+              private: repo.private,
+              defaultBranch: repo.defaultBranch,
+              createdAt: repo.createdAt,
+              updatedAt: repo.updatedAt,
             })),
-            source: 'github'
+            stats: {
+              existingRepos: existingRepos.length,
+              newRepos: savedNewRepos.length,
+              totalRepos: allRepos.length
+            }
           };
         } catch (error: any) {
           console.error(`Error processing installation ${installation.id}:`, error);
@@ -117,7 +128,7 @@ export const previewAllData = async (req: Request, res: Response) => {
       })
     );
 
-    console.timeEnd('previewAllData');
+    console.timeEnd('syncAndGetData');
 
     // Filter out failed installations
     const successfulResults = results.filter(result => !result.error);
@@ -125,7 +136,7 @@ export const previewAllData = async (req: Request, res: Response) => {
 
     return successResponse(
       res,
-      "Fetched and stored organizations and repositories",
+      "Synced and fetched organizations and repositories",
       {
         results: successfulResults,
         failedResults: failedResults,
@@ -139,6 +150,6 @@ export const previewAllData = async (req: Request, res: Response) => {
     );
   } catch (error) {
     console.error(error);
-    return errorResponse(res, "Failed to fetch GitHub preview", 500, error);
+    return errorResponse(res, "Failed to sync and fetch data", 500, error);
   }
 };
