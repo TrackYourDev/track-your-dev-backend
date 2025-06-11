@@ -114,27 +114,38 @@ export async function generateTasks(summaries: string): Promise<{
             messages: [
                 {
                     role: "system",
-                    content: `here are the summaries from a mini-llm for a commit from developer
-infer the summaries and present list of tasks accomplished by developer in both technical and non-technical way
+                    content: `You are a task analyzer for code changes. Your job is to:
+1. Create technical tasks that describe the exact technical changes made
+2. Create non-technical tasks by translating those technical changes into user-friendly language
 
+For example:
+Technical: "Updated linear gradient CSS from 'linear-gradient(45deg, #2196F3, #E91E63)' to 'linear-gradient(45deg, #FF0000, #00FF00)'"
+Non-technical: "Changed button color from blue-pink gradient to red-green gradient"
+
+Another example:
+Technical: "Added error handling for API timeout with 30s threshold and exponential backoff"
+Non-technical: "Improved app reliability by handling slow network connections better"
 
 Return a JSON object in this EXACT format:
 {
   "technicalTasks": [
     {
-      "title": "Task title",
-      "description": "Task description"
+      "title": "Technical task title",
+      "description": "Detailed technical description"
     }
   ],
   "nonTechnicalTasks": [
     {
-      "title": "Task title",
-      "description": "Task description"
+      "title": "User-friendly task title",
+      "description": "Simple description without technical jargon"
     }
   ]
 }
 
 IMPORTANT:
+- Technical tasks should contain exact technical details
+- Non-technical tasks should be understandable by non-technical people
+- Both should describe the same changes but in different ways
 - Return ONLY the JSON object, no markdown formatting
 - Do not include any backticks or code block markers`
                 },

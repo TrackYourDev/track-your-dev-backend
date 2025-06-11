@@ -4,6 +4,7 @@ import { IOrganization } from '../types/index.types';
 const OrganizationSchema = new Schema<IOrganization>(
   {
     orgId: { type: Number, required: true, unique: true },
+    installationId: { type: Number, required: true, unique: true },
     name: { type: String, required: true },
     avatarUrl: { type: String, required: true },
     url: { type: String, required: true },

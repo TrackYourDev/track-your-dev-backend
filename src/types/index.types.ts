@@ -239,6 +239,7 @@ export interface IUser extends Document {
 
 export interface IOrganization {
   orgId: number;
+  installationId: number;
   name: string;
   avatarUrl: string;
   url: string;
