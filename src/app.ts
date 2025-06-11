@@ -9,7 +9,10 @@ import oldCommit from './routes/github.route'
 import dates from './routes/dates.routes';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  credentials: true,
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'https://trackyour.dev']
+}));
 app.use(express.json());
 app.use(cookieParser());
 
