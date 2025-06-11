@@ -65,4 +65,10 @@ const CommitSchema = new Schema<ICommit>(
   { timestamps: true }
 );
 
+// Add compound index for repository and commitTime
+CommitSchema.index({ repository: 1, commitTime: 1 });
+
+// Add index for organization
+CommitSchema.index({ organization: 1 });
+
 export const Commit = model<ICommit>("Commit", CommitSchema);

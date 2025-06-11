@@ -31,16 +31,38 @@ export const getCommitsController = async (req: Request, res: Response) => {
     }
 
     // Check if we already have commits for this date range
+    const startDateObj = new Date(startDate as string);
+    const endDateObj = new Date(endDate as string);
+    
+    // Set time to start of day for start date and end of day for end date
+    startDateObj.setHours(0, 0, 0, 0);
+    endDateObj.setHours(23, 59, 59, 999);
+
+    console.log('Searching database for commits between:', {
+      startDate: startDateObj,
+      endDate: endDateObj
+    });
+
     const existingCommits = await Commit.find({
       repository: repository._id,
       commitTime: {
-        $gte: new Date(startDate as string),
-        $lte: new Date(endDate as string)
+        $gte: startDateObj,
+        $lte: endDateObj
+      }
+    }).lean();
+
+    console.log('Database query result:', {
+      foundCommits: existingCommits.length,
+      repositoryId: repository._id,
+      dateRange: {
+        start: startDateObj,
+        end: endDateObj
       }
     });
 
     // If we have all commits for this date range, return them
     if (existingCommits.length > 0) {
+      console.log('Found existing commits in database:', existingCommits.length);
       const formattedCommits = existingCommits.map((commit) => ({
         _id: commit._id,
         commitMessage: commit.commitMessage,
@@ -55,10 +77,16 @@ export const getCommitsController = async (req: Request, res: Response) => {
       return successResponse(
         res,
         "Fetched commits from database",
-        { commits: formattedCommits },
+        { 
+          commits: formattedCommits,
+          totalCommits: formattedCommits.length,
+          source: 'database'
+        },
         200
       );
     }
+
+    console.log('No existing commits found, fetching from GitHub...');
 
     // If we don't have commits, fetch and process them
     const token = await getInstallationAccessToken(organization.installationId);
@@ -75,19 +103,12 @@ export const getCommitsController = async (req: Request, res: Response) => {
     }
 
     console.log('Total commits fetched from GitHub:', commits.length);
-    console.log('Date range:', { startDate, endDate });
+    console.log('Date range:', { startDate: startDateObj, endDate: endDateObj });
 
     // Filter commits by date range
     const filteredCommits = commits.filter(commit => {
       const commitDate = new Date(commit.commit?.author?.date || '');
-      const start = new Date(startDate as string);
-      const end = new Date(endDate as string);
-      
-      // Set time to start of day for start date and end of day for end date
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
-      
-      const isInRange = commitDate >= start && commitDate <= end;
+      const isInRange = commitDate >= startDateObj && commitDate <= endDateObj;
       
       if (isInRange) {
         console.log('Found commit in range:', {
@@ -140,21 +161,25 @@ export const getCommitsController = async (req: Request, res: Response) => {
           );
 
           // Create commit document
-          const commitDoc = await Commit.create({
-            id: commit.sha,
-            commitTime: new Date(commit.commit?.author?.date || ''),
-            repository: repository._id,
-            organization: organization._id,
-            summaries: fileAnalyses.map(file => ({
-              filename: file.filename,
-              summary: file.summary
-            })),
-            tasks: tasks,
-            commitMessage: commit.commit?.message || '',
-            additions: commit.stats?.additions || 0,
-            deletions: commit.stats?.deletions || 0,
-            changes: commit.stats?.total || 0
-          });
+          const commitDoc = await Commit.findOneAndUpdate(
+            { id: commit.sha },
+            {
+              id: commit.sha,
+              commitTime: new Date(commit.commit?.author?.date || ''),
+              repository: repository._id,
+              organization: organization._id,
+              summaries: fileAnalyses.map(file => ({
+                filename: file.filename,
+                summary: file.summary
+              })),
+              tasks: tasks,
+              commitMessage: commit.commit?.message || '',
+              additions: commit.stats?.additions || 0,
+              deletions: commit.stats?.deletions || 0,
+              changes: commit.stats?.total || 0
+            },
+            { upsert: true, new: true }
+          );
 
           return {
             _id: commitDoc._id,
