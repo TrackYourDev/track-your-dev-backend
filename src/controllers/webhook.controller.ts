@@ -8,6 +8,7 @@ import { successResponse, errorResponse } from "../utils/responseHendler";
 import { GitHubWebhookPayload } from "../types/index.types";
 import { compareCommits } from "../services/github.service";
 import { analyzeGitHubDiff, generateTasks } from "../services/openai.service";
+import { filterIgnoredFiles } from "../utils/fileFilter.util";
 
 export async function handleGitHubWebhook(
   req: Request,
@@ -31,8 +32,12 @@ export async function handleGitHubWebhook(
     
     console.log(comparisonData);
 
+    // Filter out ignored files before analysis
+    const relevantFiles = filterIgnoredFiles(comparisonData.files);
+    console.log(`Filtered out ${comparisonData.files.length - relevantFiles.length} ignored files`);
+
     const fileAnalyses = await Promise.all(
-      comparisonData.files.map(async (file) => {
+      relevantFiles.map(async (file) => {
         const diff = `
         filename: ${file.filename}
         status: ${file.status} 
