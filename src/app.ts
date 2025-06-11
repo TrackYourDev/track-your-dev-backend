@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import webhook from './routes/webhook.routes';
 import waitlist from './routes/waitlist.routes';
 import UserInfo  from './routes/userInfo.routes';
+import oldCommit from './routes/github.route'
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -12,5 +13,6 @@ app.use(cookieParser());
 
 app.use('/api', webhook);
 app.use('/api', waitlist);
-app.use('/api', UserInfo )
+app.use('/api', UserInfo);
+app.use('/api',oldCommit);
 export default app;
