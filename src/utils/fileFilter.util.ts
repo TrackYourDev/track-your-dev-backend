@@ -74,6 +74,7 @@ const IGNORED_FILE_PATTERNS = [
   /babel\.config\.(js|ts)$/,
   /postcss\.config\.(js|ts)$/,
   /tailwind\.config\.(js|ts)$/,
+  /tsconfig\.app\.tsbuildinfo$/,
 ];
 
 /**
