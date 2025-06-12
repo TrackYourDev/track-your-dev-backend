@@ -5,7 +5,7 @@ import { Commit } from "../models/commits.model";
 import { successResponse, errorResponse } from "../utils/responseHendler";
 import { getInstallationAccessToken, getCommits } from "../services/githubPreview.service";
 import { compareCommits } from "../services/github.service";
-import { analyzeGitHubDiff, generateTasks } from "../services/openai.service";
+import { analyzeGitHubDiff, generateTasks } from "../services/groq.service";
 import { filterIgnoredFiles } from "../utils/fileFilter.util";
 import { IGitHubComparison } from "../types/index.types";
 

@@ -7,7 +7,7 @@ import { Organization } from "../models/organisations.model";
 import { successResponse, errorResponse } from "../utils/responseHendler";
 import { GitHubWebhookPayload } from "../types/index.types";
 import { compareCommits } from "../services/github.service";
-import { analyzeGitHubDiff, generateTasks } from "../services/openai.service";
+import { analyzeGitHubDiff, generateTasks } from "../services/groq.service";
 import { filterIgnoredFiles } from "../utils/fileFilter.util";
 
 export async function handleGitHubWebhook(
