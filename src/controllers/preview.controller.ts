@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import {
-  getInstallations,
+  getUserInstallations,
   getInstallationAccessToken,
   getRepositories,
 } from "../services/githubPreview.service";
@@ -14,10 +14,21 @@ export const syncAndGetData = async (req: Request, res: Response) => {
   try {
     console.time('syncAndGetData');
     const githubId = (req as any).githubId;
+    const githubToken = req.cookies['github_token'];
     
-    // Get all installations in parallel
-    const installations = await getInstallations();
-    console.log(`Found ${installations.length} installations`);
+    if (!githubToken) {
+      return errorResponse(res, "GitHub token not found", 401);
+    }
+
+    // Get user from database
+    const user = await User.findOne({ githubId });
+    if (!user) {
+      return errorResponse(res, "User not found", 404);
+    }
+    
+    // Get user-specific installations
+    const installations = await getUserInstallations(githubToken);
+    console.log(`Found ${installations.length} installations for user`);
 
     // Process all installations in parallel
     const results = await Promise.all(
@@ -52,6 +63,8 @@ export const syncAndGetData = async (req: Request, res: Response) => {
             url: account.url,
             reposUrl: account.repos_url,
             description: account.description,
+            owner: user._id, // Set the current user as owner
+            $addToSet: { members: user._id } // Add user to members if not already present
           };
 
           const orgDoc = await Organization.findOneAndUpdate(
@@ -73,6 +86,7 @@ export const syncAndGetData = async (req: Request, res: Response) => {
               private: repo.private,
               defaultBranch: repo.default_branch,
               organization: orgDoc._id,
+              owner: user._id, // Set the current user as owner
               createdAt: new Date(repo.created_at),
               updatedAt: new Date(repo.updated_at),
             };
@@ -119,14 +133,14 @@ export const syncAndGetData = async (req: Request, res: Response) => {
               totalRepos: allRepos.length
             }
           };
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error(`Error processing installation ${installation.id}:`, error);
           return {
             organization: {
               login: installation.account.login,
               installationId: installation.id,
             },
-            error: error?.message || 'Unknown error',
+            error: error instanceof Error ? error.message : 'Unknown error',
             repositories: []
           };
         }
