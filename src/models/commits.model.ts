@@ -26,6 +26,7 @@ interface ICommit {
   additions: number;
   deletions: number;
   changes: number;
+  author: string;
 }
 
 const CommitSummarySchema = new Schema<ICommitSummary>({
@@ -60,7 +61,8 @@ const CommitSchema = new Schema<ICommit>(
     commitMessage: { type: String, required: true },
     additions: { type: Number, required: true },
     deletions: { type: Number, required: true },
-    changes: { type: Number, required: true }
+    changes: { type: Number, required: true },
+    author: { type: String, required: true }
   },
   { timestamps: true }
 );
