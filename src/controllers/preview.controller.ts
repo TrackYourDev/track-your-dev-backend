@@ -90,6 +90,11 @@ export const syncAndGetData = async (req: Request, res: Response) => {
           // Combine existing and new repos
           const allRepos = [...existingRepos, ...savedNewRepos];
 
+          // Sort repositories by updatedAt in descending order
+          const sortedRepos = allRepos.sort((a, b) => 
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          );
+
           return {
             organization: {
               login: orgLogin,
@@ -99,7 +104,7 @@ export const syncAndGetData = async (req: Request, res: Response) => {
               avatarUrl: account.avatar_url,
               url: account.url,
             },
-            repositories: allRepos.map(repo => ({
+            repositories: sortedRepos.map(repo => ({
               id: repo.repoId,
               name: repo.name,
               fullName: repo.fullName,
