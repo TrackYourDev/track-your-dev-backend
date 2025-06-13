@@ -153,9 +153,19 @@ export const getCommitsController = async (req: Request, res: Response) => {
             // Filter out ignored files
             const relevantFiles = filterIgnoredFiles(comparisonData.files);
 
+            // Filter out files without patches
+            const filesWithPatches = relevantFiles.filter(file => file.patch);
+            console.log(`Filtered out ${relevantFiles.length - filesWithPatches.length} files without patches`);
+
+            // Skip commits without any patches
+            if (filesWithPatches.length === 0) {
+              console.log(`Skipping commit ${commit.sha} as it has no patches`);
+              return null;
+            }
+
             // Process files and generate tasks
             const fileAnalyses = await Promise.all(
-              relevantFiles.map(async (file: IGitHubComparison['files'][0]) => {
+              filesWithPatches.map(async (file: IGitHubComparison['files'][0]) => {
                 const diff = `
                 filename: ${file.filename}
                 status: ${file.status} 

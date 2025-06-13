@@ -36,8 +36,13 @@ export async function handleGitHubWebhook(
     const relevantFiles = filterIgnoredFiles(comparisonData.files);
     console.log(`Filtered out ${comparisonData.files.length - relevantFiles.length} ignored files`);
 
-    const fileAnalyses = await Promise.all(
-      relevantFiles.map(async (file) => {
+    // Filter out files without patches
+    const filesWithPatches = relevantFiles.filter(file => file.patch);
+    console.log(`Filtered out ${relevantFiles.length - filesWithPatches.length} files without patches`);
+
+    // Only process files with patches
+    const fileAnalyses = filesWithPatches.length > 0 ? await Promise.all(
+      filesWithPatches.map(async (file) => {
         const diff = `
         filename: ${file.filename}
         status: ${file.status} 
@@ -49,10 +54,10 @@ export async function handleGitHubWebhook(
           ...analysis
         };
       })
-    );
-    console.log(fileAnalyses);
+    ) : [];
 
-    const tasks = await generateTasks(fileAnalyses.map((file) => file.summary).join("\n"));
+    // Only generate tasks if we have file analyses
+    const tasks = fileAnalyses.length > 0 ? await generateTasks(fileAnalyses.map((file) => file.summary).join("\n")) : [];
     console.log(tasks);
 
     const {
@@ -138,6 +143,12 @@ export async function handleGitHubWebhook(
           commit.removed.includes(file.filename)
         );
 
+        // Skip commits without any analyzed files
+        if (commitFiles.length === 0) {
+          console.log(`Skipping commit ${commit.id} as it has no analyzed files`);
+          return null;
+        }
+
         // Create commit document
         const commitDoc = await Commit.findOneAndUpdate(
           { id: commit.id },
@@ -164,6 +175,9 @@ export async function handleGitHubWebhook(
       })
     );
 
+    // Filter out null commit IDs (skipped commits)
+    const validCommitIds = commitIds.filter(id => id !== null);
+
     // 5. Create PushEvent with all references
     const pushEvent = {
       repository: repoDoc._id, // Use the MongoDB _id from the repo document
@@ -176,7 +190,7 @@ export async function handleGitHubWebhook(
       forced: forced,
       compareUrl: compare,
       pushedAt: pushed_at ? new Date(pushed_at) : new Date(),
-      commits: commitIds
+      commits: validCommitIds
     };
 
     await PushEvent.create(pushEvent);
