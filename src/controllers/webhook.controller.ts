@@ -154,7 +154,8 @@ export async function handleGitHubWebhook(
             commitMessage: commit.message,
             additions: commit.additions || 0,
             deletions: commit.deletions || 0,
-            changes: commit.changes || 0
+            changes: commit.changes || 0,
+            author: commit.author?.name || commit.committer?.name || 'Unknown'
           },
           { upsert: true, new: true }
         );
