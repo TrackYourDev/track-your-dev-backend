@@ -1,10 +1,28 @@
 import generateJwtToken from "../utils/generateJWT";
 
+// Cache for installation tokens (expires in 1 hour)
+const tokenCache = new Map<string, { token: string; expiresAt: number }>();
+// Cache for JWT token (expires in 10 minutes)
+let jwtCache: { token: string; expiresAt: number } | null = null;
+
 export async function getUserInstallations(userToken: string): Promise<any[]> {
   try {
+    // Get or generate JWT token
+    let jwt: string;
+    const now = Date.now();
+    
+    if (jwtCache && jwtCache.expiresAt > now) {
+      jwt = jwtCache.token;
+    } else {
+      jwt = generateJwtToken();
+      jwtCache = {
+        token: jwt,
+        expiresAt: now + 600000 // 10 minutes
+      };
+    }
+
     // First get all installations using the app JWT
-    const jwt = generateJwtToken();
-    console.log('Fetching all installations with JWT...');
+    console.time('getAllInstallations');
     const response = await fetch("https://api.github.com/app/installations", {
       headers: {
         Authorization: `Bearer ${jwt}`,
@@ -20,9 +38,10 @@ export async function getUserInstallations(userToken: string): Promise<any[]> {
     }
 
     const installations = await response.json();
-    console.log('All installations:', installations);
+    console.timeEnd('getAllInstallations');
 
     // Get current user info to check membership
+    console.time('getUserInfo');
     const userResponse = await fetch("https://api.github.com/user", {
       headers: {
         Authorization: `Bearer ${userToken}`,
@@ -38,15 +57,40 @@ export async function getUserInstallations(userToken: string): Promise<any[]> {
     }
 
     const userData = await userResponse.json();
-    console.log('Current user:', userData.login);
+    console.timeEnd('getUserInfo');
 
-    // Process each installation to check user membership
+    // Process all installations in parallel
+    console.time('processInstallations');
+    
+    // Get all installation tokens in parallel
+    console.time('getAllTokens');
+    const tokenPromises = installations.map(async (installation: any) => {
+      const cachedToken = tokenCache.get(installation.id.toString());
+      if (cachedToken && cachedToken.expiresAt > now) {
+        return { installationId: installation.id, token: cachedToken.token };
+      }
+      
+      const token = await getInstallationAccessToken(installation.id);
+      tokenCache.set(installation.id.toString(), {
+        token,
+        expiresAt: now + 3600000 // 1 hour
+      });
+      return { installationId: installation.id, token };
+    });
+    
+    const installationTokens = await Promise.all(tokenPromises);
+    const tokenMap = new Map(installationTokens.map(({ installationId, token }) => [installationId, token]));
+    console.timeEnd('getAllTokens');
+
+    // Process installations and check membership in parallel
     const userAccessibleInstallations = await Promise.all(
       installations.map(async (installation: any) => {
         try {
-          // Get installation access token
-          console.log(`Getting access token for installation ${installation.id}...`);
-          const token = await getInstallationAccessToken(installation.id);
+          const installationToken = tokenMap.get(installation.id);
+          if (!installationToken) {
+            console.error(`No token found for installation ${installation.id}`);
+            return null;
+          }
 
           // For user accounts, check if it's the current user's account
           if (installation.account.type === 'User') {
@@ -66,7 +110,7 @@ export async function getUserInstallations(userToken: string): Promise<any[]> {
               `https://api.github.com/orgs/${installation.account.login}/members/${userData.login}`,
               {
                 headers: {
-                  Authorization: `Bearer ${token}`,
+                  Authorization: `Bearer ${installationToken}`,
                   Accept: "application/vnd.github+json",
                   'User-Agent': 'trackyourdev'
                 },
@@ -87,10 +131,10 @@ export async function getUserInstallations(userToken: string): Promise<any[]> {
           }
 
           // Get repositories for this installation
-          console.log(`Fetching repositories for installation ${installation.id}...`);
+          console.time(`getRepos-${installation.id}`);
           const reposResponse = await fetch("https://api.github.com/installation/repositories", {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${installationToken}`,
               Accept: "application/vnd.github+json",
               'User-Agent': 'trackyourdev'
             },
@@ -103,6 +147,7 @@ export async function getUserInstallations(userToken: string): Promise<any[]> {
           }
 
           const reposData = await reposResponse.json();
+          console.timeEnd(`getRepos-${installation.id}`);
           console.log(`Found ${reposData.repositories?.length || 0} repositories for installation ${installation.id}`);
           
           return {
@@ -115,6 +160,7 @@ export async function getUserInstallations(userToken: string): Promise<any[]> {
         }
       })
     );
+    console.timeEnd('processInstallations');
 
     // Filter out any failed installations
     const finalInstallations = userAccessibleInstallations.filter(Boolean);
