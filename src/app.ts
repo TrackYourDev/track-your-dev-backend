@@ -7,6 +7,7 @@ import waitlist from './routes/waitlist.routes';
 import UserInfo  from './routes/userInfo.routes';
 import oldCommit from './routes/github.route'
 import dates from './routes/dates.routes';
+import repository from './routes/repository.routes';
 
 const app = express();
 app.use(cors({
@@ -21,5 +22,6 @@ app.use('/api', waitlist);
 app.use('/api', UserInfo);
 app.use('/api',oldCommit);
 app.use('/api', dates);
+app.use('/api', repository);
 
 export default app;

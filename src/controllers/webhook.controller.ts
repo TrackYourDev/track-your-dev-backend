@@ -119,6 +119,7 @@ export async function handleGitHubWebhook(
       organization: orgDoc._id, // Use the MongoDB _id from the org document
       createdAt: new Date(repository.created_at),
       updatedAt: new Date(repository.updated_at),
+      enabledForTasks: false,
     };
 
     const repoDoc = await Repository.findOneAndUpdate(
@@ -132,6 +133,12 @@ export async function handleGitHubWebhook(
       orgDoc._id,
       { $addToSet: { repositories: repoDoc._id } }
     );
+
+    // Skip processing if tasks are not enabled for this repository
+    if (!repoDoc.enabledForTasks) {
+      console.log(`Skipping commit processing for repository ${repoDoc.name} as tasks are not enabled`);
+      return successResponse(res, "Push event received but tasks are not enabled for this repository", null, 200);
+    }
 
     // 4. Store Commits and collect their IDs
     const commitIds = await Promise.all(

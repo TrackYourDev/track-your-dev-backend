@@ -129,6 +129,7 @@ export const syncAndGetData = async (req: Request, res: Response) => {
               owner: user._id,
               createdAt: new Date(repo.created_at),
               updatedAt: new Date(repo.updated_at),
+              enabledForTasks: false
             }));
 
             await Repository.insertMany(repoData, { ordered: false });
@@ -157,6 +158,7 @@ export const syncAndGetData = async (req: Request, res: Response) => {
               owner: user._id,
               createdAt: new Date(repo.created_at),
               updatedAt: new Date(repo.updated_at),
+              enabledForTasks: false
             }))
           ];
 
@@ -182,6 +184,7 @@ export const syncAndGetData = async (req: Request, res: Response) => {
               defaultBranch: repo.defaultBranch,
               createdAt: repo.createdAt,
               updatedAt: repo.updatedAt,
+              enabledForTasks: repo.enabledForTasks || false
             })),
             stats: {
               existingRepos: existingOrgRepos.length,

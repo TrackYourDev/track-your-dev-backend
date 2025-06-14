@@ -212,6 +212,7 @@ export interface IRepository {
   createdAt: Date;
   updatedAt: Date;
   organization?: Types.ObjectId;
+  enabledForTasks: boolean;
 }
 
 export interface IPushEvent {

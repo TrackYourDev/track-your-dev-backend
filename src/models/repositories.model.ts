@@ -10,7 +10,8 @@ const RepositorySchema = new Schema<IRepository>({
   defaultBranch: { type: String, required: true },
   createdAt: { type: Date, required: true },
   updatedAt: { type: Date, required: true },
-  organization: { type: Schema.Types.ObjectId, ref: 'Organization' }
+  organization: { type: Schema.Types.ObjectId, ref: 'Organization' },
+  enabledForTasks: { type: Boolean, default: true },
 });
 
 export const Repository = model<IRepository>('Repository', RepositorySchema);
