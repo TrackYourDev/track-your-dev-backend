@@ -9,6 +9,7 @@ import { Organization } from "../models/organisations.model";
 import { Repository } from "../models/repositories.model";
 import { User } from "../models/users.model";
 import { IRepository } from "../types/index.types";
+import { createUserFromGitHub } from "../services/user.service";
 
 export const syncAndGetData = async (req: Request, res: Response) => {
   try {
@@ -22,11 +23,27 @@ export const syncAndGetData = async (req: Request, res: Response) => {
 
     // Get user from database
     console.time('findUser');
-    const user = await User.findOne({ githubId });
+    let user = await User.findOne({ githubId });
     console.timeEnd('findUser');
     
+    // If user not found, create new user
     if (!user) {
-      return errorResponse(res, "User not found", 404);
+      try {
+        user = await createUserFromGitHub(githubId, githubToken);
+        if (!user) {
+          return errorResponse(res, "Failed to create user account", 500);
+        }
+      } catch (error) {
+        return errorResponse(res, "Failed to create user account", 500, error);
+      }
+    }
+
+    // At this point, user is guaranteed to exist
+    const existingUser = user;
+
+    // Check if user has an active subscription
+    if (!existingUser.isSubscribed) {
+      return errorResponse(res, "Subscription required to access this feature", 403);
     }
     
     // Get user-specific installations
@@ -70,9 +87,9 @@ export const syncAndGetData = async (req: Request, res: Response) => {
             url: installation.account.url,
             reposUrl: installation.account.repos_url,
             description: installation.account.description,
-            owner: user._id
+            owner: existingUser._id
           },
-          $addToSet: { members: user._id }
+          $addToSet: { members: existingUser._id }
         },
         upsert: true
       }
@@ -126,7 +143,7 @@ export const syncAndGetData = async (req: Request, res: Response) => {
               private: repo.private,
               defaultBranch: repo.default_branch,
               organization: existingOrg?._id,
-              owner: user._id,
+              owner: existingUser._id,
               createdAt: new Date(repo.created_at),
               updatedAt: new Date(repo.updated_at),
               enabledForTasks: false
@@ -155,7 +172,7 @@ export const syncAndGetData = async (req: Request, res: Response) => {
               private: repo.private,
               defaultBranch: repo.default_branch,
               organization: existingOrg?._id,
-              owner: user._id,
+              owner: existingUser._id,
               createdAt: new Date(repo.created_at),
               updatedAt: new Date(repo.updated_at),
               enabledForTasks: false

@@ -8,7 +8,8 @@ const UserSchema = new Schema<IUser>({
   name: String,
   email: String,
   avatarUrl: String,
-  profileUrl : String
+  profileUrl : String,
+  isSubscribed: { type: Boolean, default: false },
 });
 
 export const User = model<IUser>('User', UserSchema);

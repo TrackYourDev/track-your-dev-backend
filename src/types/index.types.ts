@@ -236,6 +236,7 @@ export interface IUser extends Document {
   email?: string;
   avatarUrl?: string;
   profileUrl?: string;
+  isSubscribed: boolean;
 }
 
 export interface IOrganization {
