@@ -10,6 +10,7 @@ const UserSchema = new Schema<IUser>({
   avatarUrl: String,
   profileUrl : String,
   isSubscribed: { type: Boolean, default: false },
+  subscriptionExpiresAt: { type: Date }
 });
 
 export const User = model<IUser>('User', UserSchema);

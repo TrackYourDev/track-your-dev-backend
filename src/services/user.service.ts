@@ -22,6 +22,10 @@ export const createUserFromGitHub = async (githubId: number, githubToken: string
 
     const githubData = response.data;
 
+    // Calculate subscription expiration date (3 days from now)
+    const subscriptionExpiresAt = new Date();
+    subscriptionExpiresAt.setDate(subscriptionExpiresAt.getDate() + 3);
+
     // Create new user in database
     const newUser = await User.create({
       githubId: githubData.id,
@@ -30,7 +34,8 @@ export const createUserFromGitHub = async (githubId: number, githubToken: string
       email: githubData.email,
       avatarUrl: githubData.avatar_url,
       profileUrl: githubData.html_url,
-      isSubscribed: false
+      isSubscribed: true,
+      subscriptionExpiresAt
     });
 
     return newUser;
