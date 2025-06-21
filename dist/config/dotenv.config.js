@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MAIL_PORT = exports.MAIL_HOST = exports.MAIL_PASS = exports.MAIL_USER = exports.WEBHOOK_SECRET = exports.MONGODB_DBNAME = exports.MONGODB_URI = exports.PORT = void 0;
+const dotenv_1 = require("dotenv");
+(0, dotenv_1.config)();
+exports.PORT = process.env.PORT || "3000";
+exports.MONGODB_URI = process.env.MONGODB_URI || "";
+exports.MONGODB_DBNAME = process.env.MONGODB_DBNAME || "";
+exports.WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || "";
+exports.MAIL_USER = process.env.MAIL_USER || "";
+exports.MAIL_PASS = process.env.MAIL_PASS || "";
+exports.MAIL_HOST = process.env.MAIL_HOST || "";
+exports.MAIL_PORT = process.env.MAIL_PORT || "";

@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const userInfo_controller_1 = require("../controllers/userInfo.controller");
+const commits_controller_1 = require("../controllers/commits.controller");
+const authenticateToken_middleware_1 = require("../middlewares/authenticateToken.middleware");
+const router = (0, express_1.Router)();
+router.get("/userinfo", authenticateToken_middleware_1.authenticateToken, userInfo_controller_1.getUserInfoController);
+router.get("/commits/:orgName/:repoName", authenticateToken_middleware_1.authenticateToken, commits_controller_1.getCommitsController);
+exports.default = router;
