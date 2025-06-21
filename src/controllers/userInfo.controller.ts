@@ -12,7 +12,12 @@ export const getUserInfoController = async (req: Request, res: Response) => {
     if (!user) return errorResponse(res, "User not found", 404);
 
     // Get all organizations where the user is a member
-    const organizations = await Organization.find({ users: user._id });
+    const organizations = await Organization.find({ 
+      $or: [
+        { owner: user._id },
+        { members: user._id }
+      ]
+    });
     if (!organizations.length)
       return errorResponse(res, "No organizations found", 404);
 

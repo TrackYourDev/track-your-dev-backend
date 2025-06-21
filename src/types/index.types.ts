@@ -347,3 +347,24 @@ export interface GitHubWebhookPayload {
     id: number;
   };
 }
+
+export interface ITask extends Document {
+  title: string;
+  description?: string;
+  status: 'todo' | 'in-progress' | 'done';
+  priority: 'low' | 'medium' | 'high';
+  assignee?: Types.ObjectId;
+  dueDate?: Date;
+  createdBy: Types.ObjectId;
+  organization: Types.ObjectId;
+  repository?: Types.ObjectId;
+  tags?: string[];
+  estimatedHours?: number;
+  actualHours?: number;
+  attachments?: string[];
+  comments?: Array<{
+    content: string;
+    author: Types.ObjectId;
+    createdAt: Date;
+  }>;
+}
